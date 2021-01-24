@@ -38,12 +38,12 @@ export class TodosService {
   }
 
   addNewTodo(AddTodoDto: AddTodoDto): Todo {
-    const { name, description } = AddTodoDto
+    const { name, description, endDate } = AddTodoDto
     const newTodo: Todo = {
       id: uuid.v1(),
       name,
       description,
-      endDate: new Date(),
+      endDate: new Date(endDate),
       status: todoStatus.InProgress
     }
     this.todos.push(newTodo)

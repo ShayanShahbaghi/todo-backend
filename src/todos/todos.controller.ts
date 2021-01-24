@@ -6,7 +6,9 @@ import {
   Param,
   Patch,
   Post,
-  Query
+  Query,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common';
 
 import { FilterTodosQueryDto } from './Dto/get-todos-filtered.dto'
@@ -30,7 +32,7 @@ export class TodosController {
       return this.todosService.getAllTodos()
     }
   }
-
+  @UsePipes(ValidationPipe)
   @Post('Add')
   addNewTodo(@Body() AddTodoDto: AddTodoDto) {
     return this.todosService.addNewTodo(AddTodoDto)
