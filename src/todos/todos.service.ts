@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { isDate } from 'class-validator';
 import * as uuid from 'uuid'
 import { AddTodoDto } from './Dto/add-todo.dto';
 import { FilterTodosQueryDto } from './Dto/get-todos-filtered.dto';
@@ -39,6 +40,9 @@ export class TodosService {
 
   addNewTodo(AddTodoDto: AddTodoDto): Todo {
     const { name, description, endDate } = AddTodoDto
+    if (endDate.length != 0 && !isDate(endDate)) {
+      throw new BadRequestException()
+    }
     const newTodo: Todo = {
       id: uuid.v1(),
       name,
@@ -51,7 +55,13 @@ export class TodosService {
   }
 
   getTodoById(id: string): Todo {
-    return this.todos.find(obj => obj.id == id)
+    const todo = this.todos.find(todo => todo.id == id)
+
+    if (!todo) {
+      throw new NotFoundException()
+    }
+
+    return todo
   }
 
   deleteTodoById(id: string): void {
@@ -63,15 +73,24 @@ export class TodosService {
     objectForChangingProperty: { data: string }
   ) {
     const todo = this.getTodoById(updateTodoDto.id)
-    console.log(updateTodoDto.propertyToChange)
+    if (!todo) {
+      throw new NotFoundException()
+    }
+    const data = objectForChangingProperty.data
     if (updateTodoDto.propertyToChange == PropertyToChange.name) {
-      todo.name = objectForChangingProperty.data
+      todo.name = data
     } else if (updateTodoDto.propertyToChange == PropertyToChange.description) {
-      todo.description = objectForChangingProperty.data
+      todo.description = data
     } else if (updateTodoDto.propertyToChange == PropertyToChange.endDate) {
-      todo.endDate = new Date(objectForChangingProperty.data)
+      if (!isDate(data)) {
+        throw new BadRequestException()
+      }
+      todo.endDate = new Date(data)
     } else if (updateTodoDto.propertyToChange == PropertyToChange.status) {
-      todo.status = objectForChangingProperty.data as todoStatus
+      if (!todoStatus[data]) {
+        throw new BadRequestException()
+      }
+      todo.status = todoStatus[data]
     }
     return todo
   }
